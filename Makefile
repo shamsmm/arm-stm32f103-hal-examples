@@ -2,7 +2,7 @@ CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 
 # List of object target files to compile, includes project and libraries
-OBJS=startup_stm32f103.o syscalls.o main.o stm32f1xx_it.o system_stm32f1xx.o stm32f1xx_hal.o stm32f1xx_hal_cortex.o stm32f1xx_hal_rcc.o stm32f1xx_hal_gpio.o
+OBJS=startup_stm32f103.o syscalls.o main.o stm32f1xx_it.o system_stm32f1xx.o stm32f1xx_hal.o stm32f1xx_hal_cortex.o stm32f1xx_hal_rcc.o stm32f1xx_hal_gpio.o stm32f1xx_hal_dma.o stm32f1xx_hal_uart.o
 
 BUILD=build
 SRC=src
@@ -17,7 +17,7 @@ vpath %.c $(STM32F1XX_HAL_DRIVER)/Src
 # Paths to project .c source files
 vpath %.c $(SRC)
 
-CFLAGS=-ggdb -mthumb -mcpu=cortex-m3 -O2 -DSTM32F103xB
+CFLAGS=-ggdb -mthumb -mcpu=cortex-m3 -O2 -DSTM32F103xB -DUSE_FULL_ASSERT
 
 # Paths to libraries .h header files
 CFLAGS+= -I$(STM32F1XX_HAL_DRIVER)/Inc/ -I$(CMSIS)/Device/ST/STM32F1xx/Include/ -I$(CMSIS)/Include
