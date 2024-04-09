@@ -28,11 +28,14 @@ CFLAGS+= -Iinc/
 # Auto create build directory
 _ := $(shell mkdir -p $(BUILD))
 
-flash: main.bin
-	st-flash --reset write main.bin 0x08000000
+#flash: main.bin
+#	st-flash --reset write main.bin 0x08000000
 
-main.bin: main.elf
-	$(OBJCOPY) -O binary -j .text -j .rodata -j .data main.elf main.bin
+#main.bin: main.elf
+	#$(OBJCOPY) -O binary -j .text -j .rodata -j .ARM -j preinit_array -j init_array -j fini_array -j .data main.elf main.bin
+
+flash: main.elf
+	openocd -f stlink.cfg -c "program main.elf verify reset exit"
 
 main.elf: $(OBJS)
 	$(CC) $(CFLAGS) -TSTM32F103.ld -o main.elf $(BUILD)/*

@@ -82,7 +82,7 @@ int main(void)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
     /* Insert delay 100 ms */
-    HAL_Delay(100);
+    HAL_Delay(1000);
   }
 }
 

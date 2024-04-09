@@ -30,7 +30,7 @@ defined in linker script */
 
   .section .text.Reset_Handler
   .weak Reset_Handler
-  .type Reset_Handler, %function
+  .type Reset_Handler, %function // This can be replaced by .thumb_func
 Reset_Handler:
 
 /* Copy the data segment initializers from flash to SRAM */
