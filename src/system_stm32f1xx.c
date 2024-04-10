@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "stm32f1xx.h"
 
 
@@ -7,7 +8,9 @@ const uint8_t APBPrescTable[8] =  {0, 0, 0, 0, 1, 2, 3, 4};
 
 void SystemInit (void)
 {
-  /* Reset the RCC clock configuration to the default reset state(for debug purpose) */
+    setvbuf(stdin, NULL, _IONBF, 0);
+
+    /* Reset the RCC clock configuration to the default reset state(for debug purpose) */
   /* Set HSION bit */
   RCC->CR |= (uint32_t)0x00000001;
 

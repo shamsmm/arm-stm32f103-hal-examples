@@ -6,11 +6,26 @@ static GPIO_InitTypeDef  GPIO_InitStruct;
 void SystemClock_Config(void);
 UART_HandleTypeDef UartHandle;
 
+uint8_t aRxBuffer[100];
 
 int __io_putchar(int ch) {
-    HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, 0xFFFF);
+    __HAL_UART_CLEAR_OREFLAG(&UartHandle);
+
+    HAL_UART_Transmit(&UartHandle, (uint8_t *) &ch, 1, HAL_MAX_DELAY);
 
     return ch;
+}
+
+int __io_getchar(void) {
+    uint8_t input;
+    return '\r\n';
+
+    __HAL_UART_CLEAR_OREFLAG(&UartHandle);
+
+    HAL_UART_Receive(&UartHandle, &input, 1, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&UartHandle, &input, 1, HAL_MAX_DELAY);
+
+    return input;
 }
 
 int main(void)
@@ -30,6 +45,11 @@ int main(void)
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    GPIO_InitStruct.Pin       = GPIO_PIN_10;
+    GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
     GPIO_InitStruct.Pin       = GPIO_PIN_13;
     GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
@@ -42,17 +62,20 @@ int main(void)
     UartHandle.Init.StopBits   = UART_STOPBITS_1;
     UartHandle.Init.Parity     = UART_PARITY_NONE;
     UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
-    UartHandle.Init.Mode       = UART_MODE_TX;
+    UartHandle.Init.Mode       = UART_MODE_TX_RX;
     if (HAL_UART_Init(&UartHandle) != HAL_OK)
     {
         while (1);
     }
 
+    int input = 0;
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        HAL_Delay(1000);
-        printf("\n\r Hi there! The AHB clock is: %lu\n\r", SystemCoreClock);
+        HAL_Delay(100);
+        printf("\n\r Hi there! From scanf %d\n\r", input);
+        scanf(" %d", &input);
+//        printf("\n\r Hi there! The AHB clock is: %lu\n\r", SystemCoreClock);
     }
 }
 
