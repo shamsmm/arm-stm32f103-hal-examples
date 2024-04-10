@@ -5,6 +5,18 @@
  extern "C" {
 #endif
 
+#if !defined  (HSE_VALUE)
+#if defined(USE_STM3210C_EVAL)
+#define HSE_VALUE    25000000U /*!< Value of the External oscillator in Hz */
+#else
+#define HSE_VALUE    8000000U /*!< Value of the External oscillator in Hz */
+#endif
+#endif /* HSE_VALUE */
+
+#if !defined  (HSI_VALUE)
+#define HSI_VALUE              8000000U  /*!< Value of the Internal oscillator in Hz */
+#endif /* HSI_VALUE */
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 
