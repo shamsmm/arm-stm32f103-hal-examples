@@ -2,7 +2,7 @@ CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 
 # List of object target files to compile, includes project and libraries
-OBJS=startup_stm32f103.o syscalls.o main.o stm32f1xx_it.o system_stm32f1xx.o stm32f1xx_hal.o stm32f1xx_hal_cortex.o stm32f1xx_hal_rcc.o stm32f1xx_hal_gpio.o stm32f1xx_hal_dma.o stm32f1xx_hal_uart.o
+OBJS=startup_stm32f103.o syscalls.o main.o stm32f1xx_it.o system_stm32f1xx.o stm32f1xx_hal.o stm32f1xx_hal_cortex.o stm32f1xx_hal_rcc.o stm32f1xx_hal_gpio.o stm32f1xx_hal_dma.o stm32f1xx_hal_uart.o stm32f1xx_hal_i2c.o
 
 BUILD=build
 SRC=src

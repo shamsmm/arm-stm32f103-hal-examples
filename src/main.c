@@ -2,53 +2,37 @@
 #include "main.h"
 
 static GPIO_InitTypeDef  GPIO_InitStruct;
+I2C_HandleTypeDef I2cHandle;
 
 void SystemClock_Config(void);
-UART_HandleTypeDef UartHandle;
-
-uint8_t aRxBuffer[100];
-
-int __io_putchar(int ch) {
-    __HAL_UART_CLEAR_OREFLAG(&UartHandle);
-
-    HAL_UART_Transmit(&UartHandle, (uint8_t *) &ch, 1, HAL_MAX_DELAY);
-
-    return ch;
-}
-
-int __io_getchar(void) {
-    uint8_t input;
-    return '\r\n';
-
-    __HAL_UART_CLEAR_OREFLAG(&UartHandle);
-
-    HAL_UART_Receive(&UartHandle, &input, 1, HAL_MAX_DELAY);
-    HAL_UART_Transmit(&UartHandle, &input, 1, HAL_MAX_DELAY);
-
-    return input;
-}
-
 int main(void)
 {
     HAL_Init();
 
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-
-
     SystemClock_Config();
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_USART1_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_I2C1_CLK_ENABLE();
 
-    GPIO_InitStruct.Pin       = GPIO_PIN_9;
+    /* Output to MCO */
+//    MODIFY_REG(RCC->CFGR, RCC_CFGR_MCO, RCC_CFGR_MCO_SYSCLK);
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_8;
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin       = GPIO_PIN_10;
-    GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pin       = GPIO_PIN_6;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_7;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin       = GPIO_PIN_13;
     GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
@@ -56,26 +40,18 @@ int main(void)
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 
-    UartHandle.Instance        = USART1;
-    UartHandle.Init.BaudRate   = 9600;
-    UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-    UartHandle.Init.StopBits   = UART_STOPBITS_1;
-    UartHandle.Init.Parity     = UART_PARITY_NONE;
-    UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
-    UartHandle.Init.Mode       = UART_MODE_TX_RX;
-    if (HAL_UART_Init(&UartHandle) != HAL_OK)
-    {
-        while (1);
-    }
+    I2cHandle.Instance = I2C1;
+    I2cHandle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    I2cHandle.Init.ClockSpeed = 100000;
+    I2cHandle.Init.DutyCycle = I2C_DUTYCYCLE_2;
+    HAL_I2C_Init(&I2cHandle);
 
-    int input = 0;
+    while (HAL_I2C_Init(&I2cHandle) != HAL_OK);
+
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        HAL_Delay(100);
-        printf("\n\r Hi there! From scanf %d\n\r", input);
-        scanf(" %d", &input);
-//        printf("\n\r Hi there! The AHB clock is: %lu\n\r", SystemCoreClock);
+        HAL_Delay(200);
     }
 }
 
