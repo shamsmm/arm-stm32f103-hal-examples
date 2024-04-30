@@ -2,7 +2,10 @@
 #include "main.h"
 
 static GPIO_InitTypeDef  GPIO_InitStruct;
-I2C_HandleTypeDef I2cHandle;
+I2C_HandleTypeDef I2C1Handle;
+I2C_HandleTypeDef I2C2Handle;
+
+#define I2C_7Bit_SLAVE_ADDRESS 0x3C
 
 void SystemClock_Config(void);
 int main(void)
@@ -15,6 +18,7 @@ int main(void)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_I2C1_CLK_ENABLE();
+    __HAL_RCC_I2C2_CLK_ENABLE();
 
     /* Output to MCO */
 //    MODIFY_REG(RCC->CFGR, RCC_CFGR_MCO, RCC_CFGR_MCO_SYSCLK);
@@ -24,34 +28,46 @@ int main(void)
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin       = GPIO_PIN_6;
+    GPIO_InitStruct.Pin       = GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_10 | GPIO_PIN_11;
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin       = GPIO_PIN_7;
-    GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin       = GPIO_PIN_13;
     GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
-    I2cHandle.Instance = I2C1;
-    I2cHandle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-    I2cHandle.Init.ClockSpeed = 100000;
-    I2cHandle.Init.DutyCycle = I2C_DUTYCYCLE_2;
-    HAL_I2C_Init(&I2cHandle);
+    I2C1Handle.Instance = I2C1;
+    I2C1Handle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    I2C1Handle.Init.OwnAddress1 = I2C_7Bit_SLAVE_ADDRESS; // Slave Address
+    I2C1Handle.Init.ClockSpeed = 100000;
+    I2C1Handle.Init.DutyCycle = I2C_DUTYCYCLE_2;
+    HAL_I2C_Init(&I2C1Handle);
 
-    while (HAL_I2C_Init(&I2cHandle) != HAL_OK);
+    I2C2Handle.Instance = I2C2;
+    I2C2Handle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    I2C2Handle.Init.ClockSpeed = 100000;
+    I2C2Handle.Init.DutyCycle = I2C_DUTYCYCLE_2;
+    HAL_I2C_Init(&I2C2Handle);
+
+
+    while (HAL_I2C_Init(&I2C1Handle) != HAL_OK || HAL_I2C_Init(&I2C2Handle));
+
+    uint8_t rx_buffer[10];
+    uint8_t *tx_buffer = "A";
 
     while (1)
     {
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        HAL_I2C_Slave_Receive_IT(&I2C1Handle, (uint8_t *)rx_buffer, 1);
+
+        HAL_I2C_Master_Transmit(&I2C2Handle, I2C_7Bit_SLAVE_ADDRESS << 1, tx_buffer, 1, HAL_MAX_DELAY);
+
         HAL_Delay(200);
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
     }
 }
 
