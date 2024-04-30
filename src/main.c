@@ -62,9 +62,7 @@ int main(void)
 
     while (1)
     {
-        HAL_I2C_Slave_Receive_IT(&I2C1Handle, (uint8_t *)rx_buffer, 1);
-
-        HAL_I2C_Master_Transmit(&I2C2Handle, I2C_7Bit_SLAVE_ADDRESS << 1, tx_buffer, 1, HAL_MAX_DELAY);
+        HAL_I2C_Slave_Receive(&I2C1Handle, (uint8_t *)rx_buffer, 1, HAL_MAX_DELAY);
 
         HAL_Delay(200);
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
