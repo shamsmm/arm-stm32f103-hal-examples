@@ -5,7 +5,7 @@ static GPIO_InitTypeDef  GPIO_InitStruct;
 I2C_HandleTypeDef I2C1Handle;
 I2C_HandleTypeDef I2C2Handle;
 
-#define I2C_7Bit_SLAVE_ADDRESS 0x3C
+#define I2C_8Bit_SLAVE_ADDRESS 0x3C
 
 void SystemClock_Config(void);
 int main(void)
@@ -43,7 +43,8 @@ int main(void)
 
     I2C1Handle.Instance = I2C1;
     I2C1Handle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-    I2C1Handle.Init.OwnAddress1 = I2C_7Bit_SLAVE_ADDRESS; // Slave Address
+    I2C1Handle.Init.OwnAddress1 = I2C_8Bit_SLAVE_ADDRESS; // Slave Address
+    I2C1Handle.Init.OwnAddress2 = 0;
     I2C1Handle.Init.ClockSpeed = 100000;
     I2C1Handle.Init.DutyCycle = I2C_DUTYCYCLE_2;
     HAL_I2C_Init(&I2C1Handle);
@@ -55,18 +56,18 @@ int main(void)
     HAL_I2C_Init(&I2C2Handle);
 
 
-    while (HAL_I2C_Init(&I2C1Handle) != HAL_OK || HAL_I2C_Init(&I2C2Handle));
+    while (HAL_I2C_Init(&I2C1Handle) != HAL_OK || HAL_I2C_Init(&I2C2Handle) != HAL_OK);
 
     uint8_t rx_buffer[10];
-    uint8_t *tx_buffer = "A";
+    uint8_t *tx_buffer = (uint8_t *)"ABC";
 
     while (1)
     {
-        HAL_I2C_Slave_Receive_IT(&I2C1Handle, (uint8_t *)rx_buffer, 1);
+        HAL_I2C_Slave_Receive(&I2C1Handle, (uint8_t *)rx_buffer, 1, 2000);
 
-        HAL_I2C_Master_Transmit(&I2C2Handle, I2C_7Bit_SLAVE_ADDRESS << 1, tx_buffer, 1, HAL_MAX_DELAY);
+//        HAL_I2C_Master_Transmit(&I2C2Handle, I2C_7Bit_SLAVE_ADDRESS, tx_buffer, 1, HAL_MAX_DELAY);
 
-        HAL_Delay(200);
+        HAL_Delay(100);
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
     }
 }
