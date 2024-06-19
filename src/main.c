@@ -4,35 +4,45 @@
 static GPIO_InitTypeDef  GPIO_InitStruct;
 
 void SystemClock_Config(void);
+void GPIO_Config(void);
+
+static unsigned long ticks = 0;
+
+void TIM2_IRQHandler()
+{
+    TIM2->SR &= ~TIM_SR_UIF;
+    ticks += 1;
+}
+
+void TIM2_Delay(unsigned long delay)
+{
+    HAL_NVIC_EnableIRQ(28);
+    unsigned long current = ticks;
+
+    while (ticks - current < delay) {
+        __asm__ volatile ("nop");
+    }
+
+    HAL_NVIC_DisableIRQ(28);
+}
 
 int main(void)
 {
     HAL_Init();
 
     SystemClock_Config();
+    GPIO_Config();
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-
-    /* Output to MCO */
-    MODIFY_REG(RCC->CFGR, RCC_CFGR_MCO, RCC_CFGR_MCO_SYSCLK);
-
-    GPIO_InitStruct.Pin       = GPIO_PIN_8;
-    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-
-    GPIO_InitStruct.Pin       = GPIO_PIN_13;
-    GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+    __HAL_RCC_TIM2_CLK_ENABLE();
+    TIM2->EGR |= TIM_EGR_UG;
+    TIM2->DIER |= TIM_DIER_UIE;
+    TIM2->PSC = 0;
+    TIM2->ARR = 36000; // For 0.000001s counter period
+    TIM2->CR1 |= TIM_CR1_CEN;
 
     while (1){
-
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        TIM2_Delay(1000);
     }
 }
 
@@ -68,6 +78,29 @@ void SystemClock_Config(void)
     /* Initialization Error */
     while(1); 
   }
+}
+
+void GPIO_Config(void)
+{
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+
+    /* Output to MCO */
+    MODIFY_REG(RCC->CFGR, RCC_CFGR_MCO, RCC_CFGR_MCO_SYSCLK);
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_8;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_13;
+    GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 }
 
 #ifdef  USE_FULL_ASSERT
