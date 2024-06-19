@@ -6,6 +6,13 @@ static GPIO_InitTypeDef  GPIO_InitStruct;
 void SystemClock_Config(void);
 void GPIO_Config(void);
 
+static int delay;
+static unsigned short random;
+
+void ADC1_2_IRQHandler() {
+    random = ADC1->DR;
+}
+
 int main(void)
 {
     HAL_Init();
@@ -14,7 +21,30 @@ int main(void)
 
     GPIO_Config();
 
+    __HAL_RCC_ADC1_CLK_ENABLE();
+    __HAL_RCC_ADC2_CLK_ENABLE();
+
+    DBGMCU->CR |= DBGMCU_CR_DBG_WWDG_STOP;
+
+    ADC1->CR2 |= ADC_CR2_CONT | ADC_CR2_ADON;
+    HAL_Delay(1);
+    ADC1->CR2 |= ADC_CR2_ADON;
+
+    ADC1->CR2 |=  ADC_CR2_TSVREFE;
+
+    ADC1->CR2 |= ADC_CR2_CAL;
+    while (ADC1->CR2 & ADC_CR2_RSTCAL);
+
+    HAL_NVIC_EnableIRQ(18);
+    ADC1->CR1 |=  ADC_CR1_EOCIE /*| ADC_CR1_SCAN*/;
+    ADC1->SQR3 |= 16; // Set channel for internal temperature sensor
+
     HAL_Delay(500);
+
+    // delay should be less than 64.5ms, 63ms is a safe margin since there
+    // are functions overhead
+    delay = (random % 7 == 0) ? 63 : 100; // the random number has to be multiple of 10 or else
+    // delay duration will trigger watchdog to reset
 
     __HAL_RCC_WWDG_CLK_ENABLE();
     WWDG->CFR = 3U << WWDG_CFR_WDGTB_Pos | 127;
@@ -22,7 +52,7 @@ int main(void)
 
     while (1){
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        HAL_Delay(63);
+        HAL_Delay(delay);
         WWDG->CR |= 127;
     }
 }
@@ -52,6 +82,8 @@ void GPIO_Config(void)
 
 void SystemClock_Config(void)
 {
+  RCC->CFGR = 3U << RCC_CFGR_ADCPRE_Pos;
+
   RCC_ClkInitTypeDef clkinitstruct = {0};
   RCC_OscInitTypeDef oscinitstruct = {0};
   

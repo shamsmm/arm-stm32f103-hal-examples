@@ -17,7 +17,7 @@ vpath %.c $(STM32F1XX_HAL_DRIVER)/Src
 # Paths to project .c source files
 vpath %.c $(SRC)
 
-CFLAGS=-ggdb -mthumb -mcpu=cortex-m3 -O2 -DSTM32F103xB -DUSE_FULL_ASSERT
+CFLAGS=-ggdb -mthumb -mcpu=cortex-m3 -O0 -DSTM32F103xB -DUSE_FULL_ASSERT
 
 # Paths to libraries .h header files
 CFLAGS+= -I$(STM32F1XX_HAL_DRIVER)/Inc/ -I$(CMSIS)/Device/ST/STM32F1xx/Include/ -I$(CMSIS)/Include
