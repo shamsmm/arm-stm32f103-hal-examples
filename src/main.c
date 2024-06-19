@@ -4,6 +4,7 @@
 static GPIO_InitTypeDef  GPIO_InitStruct;
 
 void SystemClock_Config(void);
+void GPIO_Config(void);
 
 int main(void)
 {
@@ -11,6 +12,23 @@ int main(void)
 
     SystemClock_Config();
 
+    GPIO_Config();
+
+    HAL_Delay(500);
+
+    __HAL_RCC_WWDG_CLK_ENABLE();
+    WWDG->CFR = 3U << WWDG_CFR_WDGTB_Pos | 127;
+    WWDG->CR = WWDG_CR_WDGA | 127;
+
+    while (1){
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        HAL_Delay(63);
+        WWDG->CR |= 127;
+    }
+}
+
+void GPIO_Config(void)
+{
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -30,10 +48,6 @@ int main(void)
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-
-    while (1){
-
-    }
 }
 
 void SystemClock_Config(void)
@@ -60,9 +74,9 @@ void SystemClock_Config(void)
      clocks dividers */
   clkinitstruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   clkinitstruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  clkinitstruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
-  clkinitstruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  clkinitstruct.APB1CLKDivider = RCC_HCLK_DIV2;  
+  clkinitstruct.AHBCLKDivider = RCC_SYSCLK_DIV2;    // 128MHz/2 = 64MHz
+  clkinitstruct.APB2CLKDivider = RCC_HCLK_DIV1; // 64MHz
+  clkinitstruct.APB1CLKDivider = RCC_HCLK_DIV2;  // 32MHz
   if (HAL_RCC_ClockConfig(&clkinitstruct, FLASH_LATENCY_2)!= HAL_OK)
   {
     /* Initialization Error */
