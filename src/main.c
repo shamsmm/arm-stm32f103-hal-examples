@@ -2,12 +2,9 @@
 #include "main.h"
 
 static GPIO_InitTypeDef  GPIO_InitStruct;
-I2C_HandleTypeDef I2C1Handle;
-I2C_HandleTypeDef I2C2Handle;
-
-#define I2C_8Bit_SLAVE_ADDRESS 0x3C
 
 void SystemClock_Config(void);
+
 int main(void)
 {
     HAL_Init();
@@ -17,11 +14,9 @@ int main(void)
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_I2C1_CLK_ENABLE();
-    __HAL_RCC_I2C2_CLK_ENABLE();
 
     /* Output to MCO */
-//    MODIFY_REG(RCC->CFGR, RCC_CFGR_MCO, RCC_CFGR_MCO_SYSCLK);
+    MODIFY_REG(RCC->CFGR, RCC_CFGR_MCO, RCC_CFGR_MCO_SYSCLK);
 
     GPIO_InitStruct.Pin       = GPIO_PIN_8;
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
@@ -35,8 +30,6 @@ int main(void)
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-
-
 
     while (1){
 
@@ -78,19 +71,8 @@ void SystemClock_Config(void)
 }
 
 #ifdef  USE_FULL_ASSERT
-
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-
   printf("Wrong parameters value: file %s on line %lu\r\n", file, line);
 
   /* Infinite loop */
